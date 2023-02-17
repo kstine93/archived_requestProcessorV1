@@ -1,0 +1,89 @@
+apiVersion: zalando.org/v1
+kind: StackSet
+metadata:
+  name: "{{ APPLICATION }}-{{ ENVIRONMENT }}"
+  labels:
+    application: {{ APPLICATION }}
+    environment: {{ ENVIRONMENT }}
+  annotations:
+    # iam.amazonaws.com/role: "{{ APPLICATION }}-{{ ENVIRONMENT }}-iam-role"
+    alpha.stackset-controller.zalando.org/prescale-stacks: "yes"
+    alpha.stackset-controller.zalando.org/reset-hpa-min-replicas-delay: 20m
+spec:
+  ingress:
+    hosts:
+      - {{ HOSTNAME }}
+    backendPort: 80
+    metadata:
+      annotations:
+        zalando.org/skipper-filter: oauthTokeninfoAnyScope("uid")
+  traffic:
+    - stackName: "{{ APPLICATION }}-{{ ENVIRONMENT }}-{{ VERSION }}"
+      weight: 100
+  stackLifecycle:
+    scaledownTTLSeconds: 0
+    limit: 1
+  stackTemplate:
+      spec:
+        version: {{ VERSION }}
+        replicas: {{ MIN_REPLICAS }}
+        service:
+          metadata:
+            annotations:
+              # iam.amazonaws.com/role: "{{ APPLICATION }}-{{ ENVIRONMENT }}-iam-role"
+          ports:
+            - name: main
+              port: 80
+              protocol: TCP
+              targetPort: 3000
+        horizontalPodAutoscaler:
+          minReplicas: {{ MIN_REPLICAS }}
+          maxReplicas: {{ MAX_REPLICAS }}
+          metrics:
+            - type: Resource
+              resource:
+                name: cpu
+                targetAverageUtilization: 55
+        podTemplate:
+          metadata:
+            labels:
+              application: {{ APPLICATION }}
+              version: {{ VERSION }}
+            annotations:
+              # iam.amazonaws.com/role: "{{ APPLICATION }}-{{ ENVIRONMENT }}-iam-role"
+              kubernetes-log-watcher/scalyr-parser: '[{"container": "{{ APPLICATION }}", "parser": "json"}]'
+          spec:
+            tolerations:
+              - key: aws.amazon.com/spot
+                operator: Exists
+            containers:
+              - name: {{ APPLICATION }}
+                image: "{{ IMAGE }}:{{ VERSION }}"
+                env:
+                  - name: ENVIRONMENT
+                    value: {{ ENVIRONMENT }}
+                  - name: NODE_ENV
+                    value: {{ ENVIRONMENT }}
+                  - name: VERSION
+                    value: {{ VERSION }}
+                  - name: LOG_LEVEL
+                    value: {{ LOG_LEVEL }}
+                ports:
+                  - containerPort: 3000
+                    name: "app"
+                readinessProbe:
+                  httpGet:
+                    path: /healthcheck
+                    port: 3000
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+                  failureThreshold: 1
+                  successThreshold: 1
+                  timeoutSeconds: 1
+                resources:
+                  requests:
+                    cpu: {{ CPU }}
+                    memory: {{ MEMORY }}
+                  limits:
+                    cpu: {{ CPU }}
+                    memory: {{ MEMORY }}

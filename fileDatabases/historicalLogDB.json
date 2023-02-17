@@ -1,0 +1,21 @@
+{
+    "queue": [
+        {
+            "elementId": "13405eab-aca7-457a-a21d-4aa285bf2c83",
+            "inputDate": "2022-05-04T16:09:02.423Z",
+            "identifier": {
+                "type": "email",
+                "value": "testpost@test.de"
+            },
+            "inputType": "email-request",
+            "outputResults": [
+                {
+                    "outputType": "N/A - request rejected",
+                    "date": "2022-05-04T16:09:57.484Z",
+                    "finished": false,
+                    "note": "shouldn't have been added"
+                }
+            ]
+        }
+    ]
+}

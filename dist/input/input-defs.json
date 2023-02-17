@@ -1,0 +1,30 @@
+{ "inputs": [
+        {
+            "desc": "Customer Care",
+            "inputType": "custom-cucaInput",
+            "excludeOutputs": []
+        },
+        {
+            "desc": "Qualtrics Opt-Outs",
+            "inputType": "httpRequest",
+            "excludeOutputs": [],
+            "parameters": {
+                "url": "https://zalando.de",
+                "headers": {
+                    "headers": "headers"
+                }
+            }
+        },
+        {
+            "desc": "QuestionPro Opt-Outs",
+            "inputType": "httpRequest",
+            "excludeOutputs": [],
+            "parameters": {
+                "url": "https://zalando.de",
+                "headers": {
+                    "headers": "headers"
+                }
+            }
+        }
+    ]
+}

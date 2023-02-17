@@ -1,0 +1,22 @@
+{
+    "queue": [
+        {
+            "elementId": "8fcab9bc-96be-47b2-91f2-a4231a4e1f6b",
+            "inputDate": "2022-05-04T16:07:15.463Z",
+            "identifier": {
+                "type": "email",
+                "value": "testpost@test.de"
+            },
+            "inputType": "email-request"
+        },
+        {
+            "elementId": "2e12edfd-1688-4981-9c4a-4df21c8e3040",
+            "inputDate": "2022-05-04T16:09:07.522Z",
+            "identifier": {
+                "type": "email",
+                "value": "testpost@test.de"
+            },
+            "inputType": "email-request"
+        }
+    ]
+}

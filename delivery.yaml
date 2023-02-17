@@ -1,0 +1,68 @@
+version: "2017-09-20"
+#commands for running locally
+global_variables:
+  common: &common_env
+    NODE_EXTRA_CA_CERTS: /etc/ssl/certs/ca-certificates.crt
+    APPLICATION: &application data-deletion-service
+    IMAGE: pierone.stups.zalan.do/team-ur/data-deletion-service
+    VERSION: "#{CDP_BUILD_VERSION}"
+    LOG_LEVEL: debug
+    MIN_REPLICAS: "1"
+
+  pr: &pr_env
+    <<: *common_env
+    CPU: 500m
+    ENVIRONMENT: pr
+    HOSTNAME: data-deletion-service-pr.dx-ie-test.zalan.do
+    IMAGE: pierone.stups.zalan.do/team-ur/data-deletion-service-pr  # override
+    LOG_LEVEL: debug  # override
+    MAX_REPLICAS: "1"
+    MEMORY: 500Mi
+
+
+allow_concurrent_steps: true #for CDP
+
+#all of this under 'pipeline' is just building the pipeline - not actually running any of my code files
+pipeline: #id, type, vm_config necessary
+  - id: build
+    type: script
+    vm_config:
+      type: linux
+      image: "cdp-runtime/nodejs-14" #docker image - there are other images we can choose from
+    env:
+      <<: *common_env #injecting environment vars
+    commands: #commands are necessary
+      - desc: "Recover git history"
+        cmd: |
+          git fetch
+      - desc: "Install project dependencies"
+        cmd: |
+          npm install
+      - desc: "Build project"
+        cmd: |
+          npm run build
+      - desc: Build and push Docker image
+        cmd: |
+          if [ -n "$CDP_PULL_REQUEST_NUMBER" ]; then
+            IMAGE_NAME="pierone.stups.zalan.do/team-ur/data-deletion-service-pr"
+            docker build --build-arg IS_PR_ENVIRONMENT=true --network=host -t "${IMAGE_NAME}:${CDP_BUILD_VERSION}" .
+          else
+            IMAGE_NAME="pierone.stups.zalan.do/team-ur/data-deletion-service"
+            docker build --network=host -t "${IMAGE_NAME}:${CDP_BUILD_VERSION}" .
+          fi
+          docker push "${IMAGE_NAME}:${CDP_BUILD_VERSION}"
+  - id: deploy-pr
+    depends_on:
+      - build
+    type: process
+    desc: "PR deployment to test cluster"
+    when:
+      event: pull_request
+    requires_human_approval: true
+    target: dx-ie-test
+    process: microservice_standard_deployment
+    config:
+      apply_permanent_resources:
+        env:
+          <<: *pr_env
+          DEPLOYMENT_PATH: deploy/pr

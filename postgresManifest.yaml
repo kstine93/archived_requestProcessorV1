@@ -1,0 +1,29 @@
+kind: "postgresql"
+apiVersion: "acid.zalan.do/v1"
+
+metadata:
+  name: team-ur-data-deletion-service  # teamId prefix is required (in this case "acid-")
+  namespace: default
+  labels:
+    application: data-deletion-service # will be used in ZMON metrics
+    component: database
+  annotations:
+    # billing attribution
+    zalando.org/owning-application: data-deletion-service
+    # helpful optional annotations
+    zalando.org/criticality: 3
+
+spec:
+  teamId: "team-ur"
+  volume:
+    size: 1Gi
+  numberOfInstances: 1
+
+  postgresql:
+    version: "14"
+
+  users:
+    app_owner: ["kevin.stine@zalando.de"]
+
+  databases:
+    test_application_db: app_owner

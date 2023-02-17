@@ -1,0 +1,13 @@
+{
+    "extends": "./node_modules/@tsconfig/node14/tsconfig.json",
+    "compilerOptions": {
+      "outDir": "dist",
+      "rootDir": "./src",
+      "baseUrl": "./",
+      "strict":true,
+      "removeComments": false,
+      "diagnostics":false,
+      "resolveJsonModule": true,
+      "esModuleInterop": true,
+    }
+  }
